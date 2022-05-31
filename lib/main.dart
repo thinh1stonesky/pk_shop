@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pk_shop/auth/sign_in.dart';
+import 'package:pk_shop/screens/home/home_screen.dart';
 import 'package:pk_shop/themes.dart';
 
 void main() async {
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
 
         primarySwatch: Colors.grey,
       ),
-      home: const SignIn(),
+      home: const HomeScreen(),
     );
   }
 }
