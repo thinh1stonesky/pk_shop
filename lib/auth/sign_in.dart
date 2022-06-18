@@ -1,8 +1,11 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:pk_shop/provider/user_provider.dart';
 import 'package:pk_shop/screens/home/home_screen.dart';
 import 'package:pk_shop/themes.dart';
+import 'package:provider/provider.dart';
 import 'auth_methods.dart';
 
 
@@ -16,8 +19,10 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   String thongBaoLoi = "";
+  UserProvider? userProvider;
   @override
   Widget build(BuildContext context) {
+    userProvider = Provider.of<UserProvider>(context);
     Size size = MediaQuery.of(context).size;
     return Scaffold(
         body: Container(
@@ -67,10 +72,21 @@ class _SignInState extends State<SignIn> {
                           child: ElevatedButton(
                             onPressed: () async{
                               var user = await signWithGoogle();
+                              User u = FirebaseAuth.instance.currentUser!;
+                              print(u.uid);
+                              print("------------------------------------------------------------------");
+                              userProvider!.addUserData(
+                                  currentUser: u,
+                                userEmail: u.email,
+                                userImage: u.photoURL,
+                                userName: u.displayName
+                              );
                               if(user!=null){
                                 Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (context) => const HomeScreen(),)
-                                    , (route) => false);
+                                    // MaterialPageRoute(builder: (context) => const FirebaseApp(),)
+                                    MaterialPageRoute(builder: (context)
+                                    => const HomeScreen()
+                                    ), (route) => false);
                               }else {
                                 setState(() {
                                   thongBaoLoi = "Login fails";

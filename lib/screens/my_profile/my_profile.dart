@@ -1,14 +1,19 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pk_shop/helpers/dialog.dart';
 import 'package:pk_shop/screens/home/drawer_side.dart';
+import 'package:pk_shop/screens/home/home_screen.dart';
 import 'package:pk_shop/themes.dart';
 
 class MyProfile extends StatelessWidget {
   const MyProfile({Key? key}) : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: primaryColor,
@@ -44,14 +49,14 @@ class MyProfile extends StatelessWidget {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text("Ngọc Thịnh",
-                                  style: TextStyle(
+                              children: [
+                                Text(user?.displayName?? "Unknow",
+                                  style: const TextStyle(
                                     fontSize: 12, fontWeight: FontWeight.bold
                                   ),
                                 ),
                                 SizedBox(height: 10,),
-                                Text("phanthinh106@gmai.com",
+                                Text(user?.email?? "Unknow@mail.com",
                                   style: TextStyle(fontSize: 12),
                                 )
                               ],
@@ -80,7 +85,19 @@ class MyProfile extends StatelessWidget {
                         listTile(icon: Icons.file_copy_outlined, title: "Terms & Conditions"),
                         listTile(icon: Icons.policy_outlined, title: "Privacy Policy"),
                         listTile(icon: Icons.add_chart, title: "About"),
-                        listTile(icon: Icons.exit_to_app, title: "Log Out"),
+                        listTile(icon: Icons.exit_to_app,
+                            title: "Log Out",
+                          onTap: (){
+                          user != null ?
+                            FirebaseAuth.instance.signOut().whenComplete((){
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (context) => const HomeScreen(),)
+                              );
+                            }).catchError((onError){print(onError);})
+                              : showSnackBar(context, "Bạn chưa đăng nhập", 3);
+                          }
+                        ),
+
                       ],
                     ),
               ))
@@ -94,28 +111,8 @@ class MyProfile extends StatelessWidget {
               child: CircleAvatar(
                 radius: 45,
                 backgroundColor: secondaryColor,
-                child: RichText(
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                      text: "PK\n",
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: Colors.black87,
-                          shadows: [
-                            BoxShadow(
-                                color: Colors.black54,
-                                blurRadius: 5,
-                                offset: Offset(2,2)
-                            )
-                          ]
-                      ),
-                      children: <TextSpan>[
-                        TextSpan(text: "Shop", style: TextStyle(
-                            fontSize: 12
-                        ))
-                      ]
-                  ),
-                ),
+                backgroundImage: (user != null) ? NetworkImage(user.photoURL!)
+                : AssetImage(urlImage + "unknow_user.jpg") as ImageProvider,
               ),
             ),
           )
@@ -124,7 +121,7 @@ class MyProfile extends StatelessWidget {
     );
 
   }
-  Widget listTile({required IconData icon, required String title}){
+  Widget listTile({required IconData icon, required String title, VoidCallback? onTap}){
     return Column(
       children: [
         const Divider(
@@ -134,6 +131,7 @@ class MyProfile extends StatelessWidget {
           leading: Icon(icon),
           title: Text(title),
           trailing: const Icon(Icons.arrow_forward_ios),
+          onTap: onTap,
         )
       ],
     );

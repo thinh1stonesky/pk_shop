@@ -2,19 +2,53 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:pk_shop/models/review_cart.dart';
+import 'package:pk_shop/provider/review_cart_provider.dart';
 import 'package:pk_shop/themes.dart';
+import 'package:provider/provider.dart';
 
-class SingleItem extends StatelessWidget {
+import '../helpers/dialog.dart';
+
+class SingleItem extends StatefulWidget {
+
+  bool? inCart;
+  ReviewCart? reviewCart;
+
+  SingleItem({Key? key,
+    this.inCart,
+    this.reviewCart,
+  }) : super(key: key);
+
+  @override
+  State<SingleItem> createState() => _SingleItemState();
+}
+
+class _SingleItemState extends State<SingleItem> {
+  ReviewCartProvider? provider;
   bool? inCart = false;
-  SingleItem({Key? key, this.inCart}) : super(key: key);
+  ReviewCart? reviewCart;
+  String? anh, ten;
+  int? gia;
+  late int count;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    inCart = widget.inCart;
+    reviewCart = widget.reviewCart;
+    count = reviewCart?.soluong;
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    provider = Provider.of(context);
     return Row(
       children: [
         Expanded(
             child: Container(
-              child: Image.network("https://image.cellphones.com.vn/358x/media/catalog/product/a/z/azaudio-tai-nghe-bluetooth-apple-airpod-2_2.jpg"),
+              child: Image.network(reviewCart!.anh!),
             )
         ),
         Expanded(
@@ -27,69 +61,81 @@ class SingleItem extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Text("ProductName",
+                    children: [
+                      Text(reviewCart!.ten!.length > 30 ? reviewCart!.ten!.substring(0,30) +"..." : reviewCart!.ten!,
                         style: TextStyle(fontSize: 12),
                       ),
                       SizedBox(height: 5,),
-                      Text("\$50",
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      RichText(
+                          maxLines: 2,
+                          overflow: TextOverflow.clip,
+                          text: TextSpan(
+                              text: reviewCart!.gia!.toString(),
+                              style: const TextStyle(
+                                  fontSize: 17,
+                                  color: Colors.black54,
+                                  shadows: [
+                                    BoxShadow(
+                                        color: Colors.white,
+                                        offset: Offset(1,1),
+                                        blurRadius: 3
+                                    )
+                                  ]
+                              ),
+                              children: const [
+                                TextSpan(
+                                    text: "VNĐ",
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 10
+                                    )
+                                )
+                              ]
+                          )
                       ),
                     ],
                   ),
-                  inCart ==false ?Container(
-                    height: 30,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            width: 1,
-                            color: Colors.grey
-                        )
-                    ),
-                    child: Container(
-                      width: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: const [
-                          Text("\$50", style: TextStyle(color: Colors.grey),),
-                          Icon(Icons.arrow_drop_down, color: primaryColor,)
-                        ],
-                      ),
-                    ),
-                  )
-                      : const Text("\$50")
-
                 ],
               ),
             )
         ),
         Expanded(
             child: inCart == false ?Container(
-                  margin: EdgeInsets.symmetric(horizontal: 30),
-                  height: 35,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          width: 1,
-                          color: Colors.grey
-                      )
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: const [
-                      Icon(Icons.shopping_cart, color: primaryColor,),
-                      Text("ADD", style: TextStyle(color: primaryColor),),
+              margin: EdgeInsets.symmetric(horizontal: 30),
+              height: 35,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      width: 1,
+                      color: Colors.grey
+                  )
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: const [
+                  Icon(Icons.shopping_cart, color: primaryColor,),
+                  Text("ADD", style: TextStyle(color: primaryColor),),
 
-                    ],
-                  ),
-                )
+                ],
+              ),
+            )
                 : Column(
               children: [
-                Icon(Icons.delete),
+                InkWell(
+                    child: Icon(Icons.delete),
+                    onTap: () {
+                      setState(() {
+                        _xoa(context, reviewCart!.ten!);
+                        provider?.fetchReviewCartData();
+                      });
+
+                    }
+                ),
                 SizedBox(height: 5,),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 30),
                   height: 35,
+                  width: 200,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -98,13 +144,53 @@ class SingleItem extends StatelessWidget {
                       )
                   ),
                   child: Row(
-                    children: const [
-                      Icon(Icons.remove),
-                      Text("1"),
-                      Icon(Icons.add)
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      InkWell(
+                        splashColor: Colors.transparent,
+                        onTap: (){
+                          setState(() {
+                            if(count <= 1){
+                              count = 1;
+                            }else{
+                              count--;
+                              reviewCart?.soluong = count;
+                              provider?.updataReviewCart(reviewCart!);
+                              provider?.fetchReviewCartData();
+                            }
+                          });
+                        },
+                        child: Icon(
+                          Icons.arrow_left,
+                          color: count == 1? Colors.grey: Colors.black87,
+                        ),
+                      ),
+                      Text("$count",
+                        style: const TextStyle(
+                            color: Colors.grey
+                        ),
+                      ),
+                      InkWell(
+                        splashColor: Colors.transparent,
+                        onTap: (){
+                          setState(() {
+                            if(count >= 99){
+                              count = 99;
+                            }
+                            count++;
+                            reviewCart?.soluong = count;
+                            provider?.updataReviewCart(reviewCart!);
+                            provider?.fetchReviewCartData();
+                          });
+                        },
+                        child: Icon(
+                          Icons.arrow_right,
+                          color: count == 99 ? Colors.grey: Colors.black87,
+                        ),
+                      )
                     ],
                   ),
-                )
+                ),
               ],
             )
 
@@ -112,4 +198,22 @@ class SingleItem extends StatelessWidget {
       ],
     );
   }
+
+
+  void _xoa(BuildContext context, String ten ) async {
+    String? confirm;
+    confirm = await showConfirmDialog(context, "Bạn muốn xóa $ten");
+    if(confirm == "ok"){
+      await provider!.deleteViewCart(reviewCart!.id!).whenComplete((){
+        provider?.fetchReviewCartData();
+        showSnackBar(context, "Xóa thành công", 3);
+      })
+          .onError((error, stackTrace) {
+        showSnackBar(context, "Xóa không thành công", 3);
+        return Future.error("Xóa dữ liệu không thành công");
+      });
+
+    }
+  }
 }
+

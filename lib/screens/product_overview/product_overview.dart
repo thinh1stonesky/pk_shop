@@ -1,66 +1,42 @@
 
-
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pk_shop/auth/sign_in.dart';
+import 'package:pk_shop/models/product.dart';
+import 'package:pk_shop/provider/review_cart_provider.dart';
+import 'package:pk_shop/screens/review_cart/review_cart.dart';
+import 'package:provider/provider.dart';
 
 import '../../themes.dart';
+import '../../widgets/bottomNavigatorBar.dart';
+import '../home/appbar_side.dart';
 
 enum SinginCharacter{ fill, outline}
 
 class ProductOverview extends StatefulWidget {
-  String productName;
-  String productImage;
-  ProductOverview({required this.productName,required  this.productImage});
+  SanPham sp;
+  ProductOverview({required this.sp});
   @override
   State<ProductOverview> createState() => _ProductOverviewState();
 }
 
 class _ProductOverviewState extends State<ProductOverview> {
 
-  late String productName;
-  late String productImage;
+  late SanPham sp;
   SinginCharacter _character = SinginCharacter.fill;
 
-  Widget bottomNavigatorBar({
-    required Color iconColor,
-    required Color bgColor,
-    required Color color,
-    required String title,
-    required IconData iconData
-  }){
-    return Expanded(
-        child: Container(
-          padding: EdgeInsets.all(20),
-          color: bgColor,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                iconData,
-                size: 17,
-                color: iconColor,
-              ),
-              const SizedBox(width: 5,),
-              Text(
-                title,
-                style: TextStyle(color: color)
-              )
-            ],
-          ),
-        )
-    );
-  }
+
 
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    productName = widget.productName;
-    productImage = widget.productImage;
+    sp = widget.sp;
   }
   @override
   Widget build(BuildContext context) {
+    ReviewCartProvider provider = Provider.of(context);
     return Scaffold(
       bottomNavigationBar: Row(
         children: [
@@ -71,31 +47,23 @@ class _ProductOverviewState extends State<ProductOverview> {
               title: "Add to WishList",
               iconData: Icons.favorite_outline
           ),
-          bottomNavigatorBar(
+          InkWell(
+            onTap: ()=>Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => ReviewCartPage(),)
+            ),
+            child: bottomNavigatorBar(
               iconColor: Colors.black54,
               bgColor: Colors.yellow,
               color: Colors.black54,
               title: "Go to cart",
-              iconData: Icons.shop_outlined
-          ),
+              iconData: Icons.shop_outlined,
+            ),
+          )
         ],
       ),
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        title: const Text("Home", style: TextStyle(fontSize: 17),),
-        actions: const [
-          CircleAvatar(
-            backgroundColor: Colors.white70,
-            radius: 12,
-            child: Icon(Icons.search, size: 17, color: Colors.black87,),
-          ),
-          Padding(padding: EdgeInsets.symmetric(horizontal: 5),
-            child: CircleAvatar(
-              backgroundColor: Colors.white70,
-              radius: 12,
-              child: Icon(Icons.shop, size: 17, color: Colors.black87,),
-            ),)
-        ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(50),
+        child: AppbarSide(title: "Product Overview"),
       ),
       body: Column(
         children: [
@@ -106,32 +74,25 @@ class _ProductOverviewState extends State<ProductOverview> {
                 child: Column(
                   children: [
                     ListTile(
-                      title: Text(productName),
-                      subtitle :Text("2.790.000 đ"),
+                      title: Text(sp.ten!),
                     ),
                     Container(
                       height: 250,
                       padding: EdgeInsets.all(30),
-                      child: Image.network(productImage),
+                      child: Image.network(sp.anh!, fit: BoxFit.cover,),
                     ),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(15),
-                      child: Text("Có thể tùy chỉnh",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold
-                        ),
-                        textAlign: TextAlign.start,
-                      ),
+                      height: 50,
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              CircleAvatar(
+                              const CircleAvatar(
                                 radius: 3,
                                 backgroundColor: Colors.green,
                               ),
@@ -143,30 +104,75 @@ class _ProductOverviewState extends State<ProductOverview> {
                                     setState(() {
                                       _character = value!;
                                     });
-                                  })
+                                  }),
+                              RichText(
+                                  maxLines: 2,
+                                  overflow: TextOverflow.clip,
+                                  text: TextSpan(
+                                      text: sp.gia.toString(),
+                                      style: const TextStyle(
+                                          fontSize: 17,
+                                          color: Colors.black54,
+                                          shadows: [
+                                            BoxShadow(
+                                                color: Colors.white,
+                                                offset: Offset(1,1),
+                                                blurRadius: 3
+                                            )
+                                          ]
+                                      ),
+                                      children: const [
+                                        TextSpan(
+                                            text: "VNĐ",
+                                            style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 10
+                                            )
+                                        )
+                                      ]
+                                  )
+                              ),
                             ],
                           ),
-                          Text("\$50"),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: const [
-                                Icon(
-                                  Icons.add,
-                                  size: 17,
-                                  color: primaryColor,
-                                ),
-                                Text("Add",
-                                  style: TextStyle(
+                          InkWell(
+                            splashColor: Colors.transparent,
+                            onTap: (){
+                              if(FirebaseAuth.instance.currentUser == null){
+                                Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (context) => const SignIn(),), (route) => false);
+                              }else{
+                                provider.addReviewCart(
+                                  id: sp.id,
+                                  gia: sp.gia,
+                                  anh: sp.anh,
+                                  ten: sp.ten,
+                                  soluong: 1,
+                                );
+                                provider.fetchReviewCartData();
+                              }
+
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: const [
+                                  Icon(
+                                    Icons.add,
+                                    size: 17,
                                     color: primaryColor,
-                                    fontSize: 14
                                   ),
-                                )
-                              ],
+                                  Text("Add",
+                                    style: TextStyle(
+                                        color: primaryColor,
+                                        fontSize: 14
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           )
                         ],
@@ -180,14 +186,14 @@ class _ProductOverviewState extends State<ProductOverview> {
                 width: double.infinity,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text("Thông tin sản phẩm",
+                  children: [
+                    const Text("Thông tin sản phẩm",
                       style: TextStyle(
                         fontWeight: FontWeight.bold
                       ),
                     ),
-                    SizedBox(height: 10,),
-                    Text("Đầu tiên, AirPods 2 chính hãng VN/A là hàng chính hãng do Apple sản xuất theo tiêu chuẩn của thị trường Việt Nam. Thiết bị được phân phối chính hãng thông qua các đại lý ủy quyền của Apple. Vậy tai nghe bluetooth Apple AirPods 2 chính hãng VN/A có gì khác những mẫu tai nghe cũ, tai nghe xách tay?")
+                    const SizedBox(height: 10,),
+                    Text(sp.chitiet!)
                   ],
                 ),
               )

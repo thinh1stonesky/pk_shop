@@ -1,21 +1,25 @@
 
 
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pk_shop/screens/home/home_screen.dart';
 import 'package:pk_shop/screens/my_profile/my_profile.dart';
 import 'package:pk_shop/screens/review_cart/review_cart.dart';
 
+import '../../auth/sign_in.dart';
 import '../../themes.dart';
 
+// ignore: must_be_immutable
 class DrawerSide extends StatelessWidget {
   late Size screenSize;
-  DrawerSide({required this.screenSize});
+  DrawerSide({Key? key, required this.screenSize}) : super(key: key);
 
 
   Widget listTile({required IconData icon, required String title,VoidCallback? onTap}){
     return ListTile(
       leading: Icon(icon, size: 32,),
-      title: Text(title, style: TextStyle(color: Colors.black87),),
+      title: Text(title, style: const TextStyle(color: Colors.black87),),
       onTap: onTap,
     );
   }
@@ -30,7 +34,13 @@ class DrawerSide extends StatelessWidget {
                   CircleAvatar(
                     radius: 43,
                     backgroundColor: Colors.white,
-                    child: CircleAvatar(
+                    child: FirebaseAuth.instance.currentUser != null?
+                    CircleAvatar(
+                      radius: 45,
+                      backgroundColor: secondaryColor,
+                      backgroundImage: NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
+                    )
+                    :CircleAvatar(
                       radius: 40,
                       backgroundColor: primaryColor,
                       child: RichText(
@@ -57,23 +67,44 @@ class DrawerSide extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 20,),
+                  const SizedBox(width: 20,),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Welcome Guest"),
+                      FirebaseAuth.instance.currentUser != null?
+                      Column(
+                        children: [
+                          const Text("Welcome,"),
+                          AutoSizeText(FirebaseAuth.instance.currentUser!.displayName!,
+                            maxLines: 1,
+                            minFontSize: 2,
+                            maxFontSize: 12,
+                          )
+                        ],
+                      )
+                       :const Text("Welcome Guest"),
 
-                      OutlinedButton(
+                      FirebaseAuth.instance.currentUser != null ?
+                      const SizedBox(height: 0.1,)
+                          : OutlinedButton(
                           onPressed: (){},
                           style: OutlinedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
-                                  side: BorderSide(
+                                  side: const BorderSide(
                                       width: 2
                                   )
                               )
                           ),
-                          child: Text("Sign up"))
+                          child: InkWell(
+                              onTap: (){
+                                Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => const SignIn(),)
+                                );
+                              },
+                              child: const Text("Sign up")
+                          )
+                      )
                     ],
                   )
                 ],
@@ -86,7 +117,7 @@ class DrawerSide extends StatelessWidget {
           ),
           listTile(icon: Icons.shop_outlined, title: "Review Cart",
               onTap: ()=> Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const ReviewCart(),)
+              MaterialPageRoute(builder: (context) => const ReviewCartPage(),)
     )
           ),
           listTile(icon: Icons.person_outline, title: "My Profile",
@@ -105,7 +136,7 @@ class DrawerSide extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text("Contact Support", style: TextStyle(color: Colors.grey),),
-                    SizedBox(height: 10,),
+                    const SizedBox(height: 10,),
                     Row(
                       children: const [
                         Text("Call us:", style: TextStyle(color: Colors.grey)),
