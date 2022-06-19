@@ -2,13 +2,16 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pk_shop/helpers/function/function.dart';
 import 'package:pk_shop/provider/order_provider.dart';
+import 'package:pk_shop/screens/home/home_screen.dart';
 import 'package:pk_shop/widgets/txtVND.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/review_cart.dart';
 import '../../models/user.dart';
+import '../../provider/review_cart_provider.dart';
 import '../../themes.dart';
 
 class OrderPage extends StatefulWidget {
@@ -23,11 +26,14 @@ class OrderPage extends StatefulWidget {
 
 class _OrderPageState extends State<OrderPage> {
 
-  OrderProvider? provider;
+  OrderProvider? orderProvider;
+  ReviewCartProvider? reviewCartProvider;
 
   late List<ReviewCart> listReviewCart;
   late User currentUser;
   int? addressIndex;
+  bool ordered =false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -38,12 +44,35 @@ class _OrderPageState extends State<OrderPage> {
   }
   @override
   Widget build(BuildContext context) {
-    provider = Provider.of<OrderProvider>(context, listen: true);
+    orderProvider = Provider.of<OrderProvider>(context, listen: true);
+    reviewCartProvider = Provider.of<ReviewCartProvider>(context, listen: true);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Đặt hàng"),
       ),
-      bottomNavigationBar: ListTile(
+      bottomNavigationBar: ordered ?
+      ListTile(
+        title: const Text("Đặt hàng thành công"),
+        trailing: SizedBox(
+          width: 160,
+          child: MaterialButton(
+            onPressed: (){},
+            color: primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: InkWell(
+              onTap: (){
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const HomeScreen(),),
+                        (route) => false);
+              },
+              child: const Text("Tiếp tục đặt hàng", style: TextStyle(color: Colors.black87),),
+            ),
+          ),
+        ),
+      )
+      :ListTile(
         title: const Text("Tổng thanh toán"),
         subtitle: richText(tongTienGioHang(listReviewCart) + 30000),
         trailing: SizedBox(
@@ -56,16 +85,17 @@ class _OrderPageState extends State<OrderPage> {
             ),
             child: InkWell(
               onTap: (){
-                String orderid = provider!.getOrderId();
-                provider!.addOrder(
+                ordered =!ordered;
+                String orderid = orderProvider!.getOrderId();
+                orderProvider!.addOrder(
                   orderid: orderid,
                   soluong: tongSoLuongGioHang(listReviewCart),
-                  diachi: currentUser.userAddress![addressIndex!],
+                  diachi:addressIndex ==null? currentUser.userAddress![0] :currentUser.userAddress![addressIndex!],
                   tongtien: tongTienGioHang(listReviewCart) + 30000
                 );
 
                 for(ReviewCart e in listReviewCart){
-                  provider!.addProductOrder(
+                  orderProvider!.addProductOrder(
                       gia: e.gia,
                       id: e.id,
                       anh: e.anh,
@@ -75,7 +105,17 @@ class _OrderPageState extends State<OrderPage> {
                   );
                 };
 
-
+                reviewCartProvider?.deleteAllViewCart(currentUser.userId!);
+                reviewCartProvider?.fetchReviewCartData();
+                Fluttertoast.showToast(
+                    msg: "Đặt hàng thành công",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.CENTER,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: primaryColor,
+                    textColor: Colors.black87,
+                    fontSize: 16.0
+                );
 
               },
               child: const Text("Đặt hàng", style: TextStyle(color: Colors.black87),),

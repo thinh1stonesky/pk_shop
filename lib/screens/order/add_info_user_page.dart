@@ -148,7 +148,7 @@ class _AddInfoUserPageState extends State<AddInfoUserPage> {
       );
       userProvider?.updateUser(user);
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => OrderPage(listReviewCart: widget.listReviewCart, currentUser: currentUser!),)
+        MaterialPageRoute(builder: (context) => OrderPage(listReviewCart: widget.listReviewCart, currentUser: user),)
       );
     }
   }

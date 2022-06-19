@@ -1,6 +1,7 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pk_shop/auth/sign_in.dart';
 import 'package:pk_shop/models/product.dart';
 import 'package:pk_shop/provider/review_cart_provider.dart';
@@ -150,6 +151,15 @@ class _ProductOverviewState extends State<ProductOverview> {
                                 );
                                 provider.fetchReviewCartData();
                               }
+                              Fluttertoast.showToast(
+                                  msg: "Đã thêm ${sp.ten} vào giỏ hàng",
+                                  toastLength: Toast.LENGTH_SHORT,
+                                  gravity: ToastGravity.CENTER,
+                                  timeInSecForIosWeb: 1,
+                                  backgroundColor: primaryColor,
+                                  textColor: Colors.black87,
+                                  fontSize: 16.0
+                              );
 
                             },
                             child: Container(

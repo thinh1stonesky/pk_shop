@@ -72,7 +72,12 @@ class ReviewCartProvider extends ChangeNotifier{
   deleteAllViewCart(String id){
     FirebaseFirestore.instance.collection("ReviewCart")
         .doc(id)
-        .delete();
+        .collection("YourReviewCart")
+        .get().then((snapshot) {
+          for (DocumentSnapshot ds in snapshot.docs){
+            ds.reference.delete();
+          }
+        });
     notifyListeners();
   }
 
