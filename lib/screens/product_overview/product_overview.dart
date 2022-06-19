@@ -150,17 +150,16 @@ class _ProductOverviewState extends State<ProductOverview> {
                                   soluong: 1,
                                 );
                                 provider.fetchReviewCartData();
+                                Fluttertoast.showToast(
+                                    msg: "Đã thêm ${sp.ten} vào giỏ hàng",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: primaryColor,
+                                    textColor: Colors.black87,
+                                    fontSize: 16.0
+                                );
                               }
-                              Fluttertoast.showToast(
-                                  msg: "Đã thêm ${sp.ten} vào giỏ hàng",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.CENTER,
-                                  timeInSecForIosWeb: 1,
-                                  backgroundColor: primaryColor,
-                                  textColor: Colors.black87,
-                                  fontSize: 16.0
-                              );
-
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
