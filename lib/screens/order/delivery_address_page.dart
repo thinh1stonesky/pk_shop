@@ -1,9 +1,11 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:pk_shop/screens/order/add_info_user_page.dart';
 
 import '../../models/review_cart.dart';
 import '../../models/user.dart';
+import '../../themes.dart';
 import 'order_page.dart';
 
 class DeliveryAddressPage extends StatelessWidget {
@@ -14,6 +16,15 @@ class DeliveryAddressPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: primaryColor,
+        onPressed: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => AddInfoUserPage(listReviewCart: listReviewCart, addAddress: true, currentUser: currentUser,),)
+          , (route) => false);
+        },
+        child: const Icon(Icons.add),
+      ),
       appBar: AppBar(
         title: const Text("Delivery Details"),
       ),

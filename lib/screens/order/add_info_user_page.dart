@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:pk_shop/models/review_cart.dart';
 import 'package:pk_shop/provider/user_provider.dart';
+import 'package:pk_shop/screens/order/delivery_address_page.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/function/function.dart';
@@ -12,9 +13,10 @@ import 'order_page.dart';
 class AddInfoUserPage extends StatefulWidget {
 
   User? currentUser;
+  bool? addAddress;
   List<ReviewCart> listReviewCart;
 
-  AddInfoUserPage({Key? key, this.currentUser, required this.listReviewCart}) : super(key: key);
+  AddInfoUserPage({Key? key, this.currentUser, required this.listReviewCart, this.addAddress}) : super(key: key);
 
   @override
   State<AddInfoUserPage> createState() => _AddInfoUserPageState();
@@ -31,6 +33,7 @@ class _AddInfoUserPageState extends State<AddInfoUserPage> {
   List<dynamic> listAddress = [];
   String? phone;
   String address = "";
+  bool? addAddress;
 
   UserProvider? userProvider;
 
@@ -39,6 +42,7 @@ class _AddInfoUserPageState extends State<AddInfoUserPage> {
     // TODO: implement initState
     super.initState();
     currentUser = widget.currentUser;
+    addAddress = widget.addAddress;
   }
 
   @override
@@ -56,7 +60,8 @@ class _AddInfoUserPageState extends State<AddInfoUserPage> {
             autovalidateMode: AutovalidateMode.disabled,
             child: Column(
               children: [
-                TextFormField(
+                addAddress == true ? const SizedBox(height: 0.1,)
+                :TextFormField(
                   onSaved: (value) => phone = value,
                   controller: _phoneCtrl,
                   validator: (value) => ValidateString(value),
@@ -137,19 +142,29 @@ class _AddInfoUserPageState extends State<AddInfoUserPage> {
           _xaCtrl.text + ", " +
           _huyenCtrl.text + ", " +
           _tinhCtrl.text;
-      listAddress.add(address);
-      User user = User(
-        userName: currentUser?.userName,
-        userImage: currentUser?.userImage,
-        userEmail: currentUser?.userEmail,
-        userAddress: listAddress,
-        userId: currentUser?.userId,
-        userPhone: phone
-      );
-      userProvider?.updateUser(user);
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => OrderPage(listReviewCart: widget.listReviewCart, currentUser: user),)
-      );
+      if(addAddress == false || addAddress == null){
+        listAddress.add(address);
+        User user = User(
+            userName: currentUser?.userName,
+            userImage: currentUser?.userImage,
+            userEmail: currentUser?.userEmail,
+            userAddress: listAddress,
+            userId: currentUser?.userId,
+            userPhone: phone
+        );
+        userProvider?.updateUser(user);
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => OrderPage(listReviewCart: widget.listReviewCart, currentUser: user),)
+        );
+      }else{
+        currentUser?.userAddress?.add(address);
+        userProvider?.updateUser(currentUser!);
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => DeliveryAddressPage(listReviewCart: widget.listReviewCart, currentUser: currentUser),)
+        );
+      }
+
+
     }
   }
 
